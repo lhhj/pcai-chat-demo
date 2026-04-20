@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pcai-chat-demo.fullname" . }}
+  labels:
+    {{- include "pcai-chat-demo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "pcai-chat-demo.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pcai-chat-demo.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "pcai-chat-demo.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 7860
+              protocol: TCP
+          env:
+            - name: LLM_ENDPOINT
+              value: {{ .Values.env.LLM_ENDPOINT | quote }}
+            - name: LLM_API_KEY
+              value: {{ .Values.env.LLM_API_KEY | quote }}
+            - name: LLM_MODEL
+              value: {{ .Values.env.LLM_MODEL | quote }}
+            - name: SYSTEM_PROMPT
+              value: {{ .Values.env.SYSTEM_PROMPT | quote }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

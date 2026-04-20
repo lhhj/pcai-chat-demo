@@ -1,0 +1,11 @@
+PCAI Chat Demo deployed successfully!
+
+Access the application at:
+  https://{{ .Values.ezua.virtualService.endpoint }}
+
+If the URL is not yet accessible, wait a moment for the Istio VirtualService to propagate.
+
+To update LLM settings without redeploying, edit values and run:
+  helm upgrade {{ .Release.Name }} ./helm/pcai-chat-demo \
+    --set env.LLM_ENDPOINT=<your-endpoint> \
+    --set env.LLM_MODEL=<your-model>

@@ -1,0 +1,17 @@
+apiVersion: v2
+name: pcai-chat-demo
+description: A simple Gradio chat UI demo deployable on HPE Private Cloud AI
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - gradio
+  - llm
+  - chat
+  - pcai
+  - demo
+home: https://github.com/lhhj/pcai-chat-demo
+sources:
+  - https://github.com/lhhj/pcai-chat-demo
+maintainers:
+  - name: lhhj

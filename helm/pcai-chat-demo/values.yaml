@@ -1,0 +1,44 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/your-dockerhub-username/pcai-chat-demo
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 7860
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+
+# LLM connection — override these at deploy time or set them in the PCAI UI values editor
+env:
+  LLM_ENDPOINT: ""
+  LLM_API_KEY: ""
+  LLM_MODEL: ""
+  SYSTEM_PROMPT: "You are a helpful AI assistant running on HPE Private Cloud AI."
+
+# -----------------------------------------------------------------------
+# HPE PCAI / EzUA — required for PCAI routing and portal integration
+# -----------------------------------------------------------------------
+ezua:
+  virtualService:
+    # Set this to: <app-name>.<namespace>.ingress.<cluster-domain>
+    # Example:     pcai-chat-demo.my-project.ingress.pcai.mycompany.com
+    endpoint: "pcai-chat-demo.${DOMAIN_NAME}"
+    istioGateway: "istio-system/ezaf-gateway"
