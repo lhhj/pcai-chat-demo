@@ -1,0 +1,84 @@
+name: Release — Build, Package, Publish
+
+# Trigger by pushing a semver tag: git tag v0.2.0 && git push --tags
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  IMAGE: docker.io/leifhh/pcai-chat-demo
+  CHART_DIR: helm/pcai-chat-demo
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create GitHub Releases
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: ver
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # strips leading 'v'
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      # ── Docker ────────────────────────────────────────────────────────────
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push versioned image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.ver.outputs.version }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── Helm package ──────────────────────────────────────────────────────
+      - uses: azure/setup-helm@v4
+
+      - name: Package Helm chart
+        id: helm
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          CHART_TGZ="pcai-chat-demo-${VERSION}.tgz"
+
+          helm package "${{ env.CHART_DIR }}" \
+            --version "${VERSION}" \
+            --app-version "${VERSION}" \
+            --set image.tag="${VERSION}" \
+            --destination .
+
+          echo "tgz=${CHART_TGZ}" >> "$GITHUB_OUTPUT"
+
+      # ── GitHub Release ────────────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: "Release ${{ steps.ver.outputs.tag }}"
+          body: |
+            ## PCAI Chat Demo ${{ steps.ver.outputs.tag }}
+
+            ### Docker image
+            ```
+            docker.io/leifhh/pcai-chat-demo:${{ steps.ver.outputs.version }}
+            ```
+
+            ### Deploy to PCAI
+            1. Download `${{ steps.helm.outputs.tgz }}` below
+            2. PCAI console → **Tools & Frameworks → Import Framework**
+            3. Upload the `.tgz` and set `ezua.virtualService.endpoint` in the values editor
+          files: ${{ steps.helm.outputs.tgz }}
