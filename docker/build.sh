@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-docker.io}"
-IMAGE_REPO="${IMAGE_REPO:-lhhj/pcai-chat-demo}"
+IMAGE_REPO="${IMAGE_REPO:-leifhh/pcai-chat-demo}"
 IMAGE_TAG="${IMAGE_TAG:-0.1.0}"
 IMAGE="${IMAGE_REGISTRY}/${IMAGE_REPO}:${IMAGE_TAG}"
 

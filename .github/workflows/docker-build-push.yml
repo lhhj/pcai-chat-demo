@@ -14,7 +14,7 @@ on:
         default: "0.1.0"
 
 env:
-  IMAGE: docker.io/lhhj/pcai-chat-demo
+  IMAGE: docker.io/leifhh/pcai-chat-demo
 
 jobs:
   build-push:
