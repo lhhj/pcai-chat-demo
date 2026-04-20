@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: docker.io/your-dockerhub-username/pcai-chat-demo
+  repository: docker.io/lhhj/pcai-chat-demo
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 
